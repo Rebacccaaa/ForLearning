@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>便利签任务管理器</title>
+    <style>
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        #app {
+            background: #f0f8ff;
+            width: 400px;
+            min-height: 500px;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin: 0 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #b0c4de;
+        }
+
+        .filter-container {
+            margin: 15px 0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        select {
+            padding: 5px;
+            border: 1px solid #b0c4de;
+            border-radius: 4px;
+            background: white;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        li {
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        li.urgent {
+            background-color: #ffe6e6!important;
+            font-weight: bold;
+        }
+
+        li.important {
+            background: linear-gradient(90deg, rgba(255,255,0,0.2) 0%, rgba(255,255,0,0.1) 100%)!important;
+        }
+
+        li:hover {
+            transform: translateX(5px);
+        }
+
+        .completed {
+            text-decoration: line-through;
+            color: #888;
+            opacity: 0.8;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 5px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #b0c4de;
+            border-radius: 4px;
+        }
+
+        button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+            flex-shrink: 0;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        .add-btn {
+            background-color: #87ceeb;
+            color: white;
+        }
+
+        .delete-btn {
+            background-color: #ff6666;
+            color: white;
+        }
+
+        .clear-btn {
+            background-color: #cd5c5c;
+            color: white;
+        }
+
+        .task-counter {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            color: #778899;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>任务便利签</h1>
+        <div class="filter-container">
+            <select v-model="selectedType">
+                <option value="all">全部任务</option>
+                <option value="todo">未完成</option>
+                <option value="completed">已完成</option>
+            </select>
+            <span class="task-counter">任务数: {{ filteredTasks.length }}</span>
+        </div>
+        
+        <ul>
+            <li v-for="(task, index) in filteredTasks" 
+                :key="task.id"
+                :class="[task.type, { completed: task.completed }]">
+                <input type="checkbox" v-model="task.completed">
+                <span style="flex-grow: 1; margin: 0 10px;">{{ task.title }}</span>
+                <select v-model="task.type">
+                    <option value="normal">普通</option>
+                    <option value="urgent">紧急</option>
+                    <option value="important">重要</option>
+                </select>
+                <button class="delete-btn" @click="confirmDelete(index)">×</button>
+            </li>
+        </ul>
+
+        <div class="input-group">
+            <input 
+                type="text" 
+                placeholder="请输入新任务..." 
+                v-model="newTask" 
+                @keyup.enter="addTask"
+            >
+            <button class="add-btn" @click="addTask">➕ 添加</button>
+            <button class="clear-btn" @click="confirmClearAll">清空全部</button>
+        </div>
+    </div>
+
+    <script src="vue.js"></script>
+    <script>
+    new Vue({
+        el: '#app',
+        data: {
+            newTask: '',
+            selectedType: 'all',
+            tasklist: [
+                {id: 1, title: '学习Vue.js', completed: false, type: 'normal'},
+                {id: 2, title: '完成项目', completed: false, type: 'urgent'},
+                {id: 3, title: '阅读书籍', completed: false, type: 'important'}
+            ]
+        },
+        computed: {
+            filteredTasks() {
+                return this.tasklist.filter(task => {
+                    if (this.selectedType === 'completed') return task.completed;
+                    if (this.selectedType === 'todo') return !task.completed;
+                    return true;
+                });
+            }
+        },
+        methods: {
+            addTask() {
+                if (!this.newTask.trim()) {
+                    alert('你还没输入呢！');
+                    return;
+                    console.log('张宏洋',20240647)
+                }
+                this.tasklist.unshift({
+                    id: Date.now(),
+                    title: this.newTask,
+                    completed: false,
+                    type: 'normal'
+                });
+                this.newTask = '';
+                console.log('张宏洋',20240647)
+            },
+            confirmDelete(index) {
+                if (confirm('确定要删除这个任务吗？')) {
+                    this.tasklist.splice(index, 1);
+                    console.log('张宏洋',20240647)
+                }
+            },
+            confirmClearAll() {
+                if (confirm('确定要清空所有任务吗？此操作不可恢复！')) {
+                    this.tasklist = [];
+                    console.log('张宏洋',20240647)
+                }
+            }
+        }
+    });
+    </script>
+</body>
+</html>
