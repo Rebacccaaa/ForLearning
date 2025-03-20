@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>任务清单</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #2E8B57 0%, #90EE90 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #app {
+            background-color: #F0FFF0;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2E8B57;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border: 1px solid #3CB371;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="text"]:focus {
+            border-color: #2E8B57;
+            outline: none;
+        }
+
+        .task-list-container {
+            height: 200px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            margin-bottom: 15px;
+        }
+
+        ul {
+            list-style-type: none;
+        }
+
+        li {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #E0FFFF;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        li:hover {
+            transform: scale(1.02);
+        }
+
+        input[type="checkbox"] {
+            transform: scale(1.3);
+        }
+
+        span {
+            flex: 1;
+            margin-left: 10px;
+            font-size: 16px;
+            color: #2E8B57;
+        }
+
+        span.completed {
+            text-decoration: line-through;
+            color: #6B8E23;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button.add-task {
+            background-color: #2E8B57;
+            color: #fff;
+        }
+
+        button.add-task:hover {
+            background-color: #006400;
+        }
+
+        button.clear-task {
+            background-color: #6B8E23;
+            color: #fff;
+            margin-left: 10px;
+        }
+
+        button.clear-task:hover {
+            background-color: #556B2F;
+        }
+
+        button.delete-task {
+            background-color: #98FB98;
+            color: #333;
+        }
+
+        button.delete-task:hover {
+            background-color: #7FFF00;
+        }
+
+        p {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #2E8B57;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <h1>任务清单</h1>
+        <input type="text" v-model="searchText" placeholder="请输入要查找的任务">
+        <div class="task-list-container">
+            <ul v-if="taskList4Search.length > 0">
+                <li v-for="task in taskList4Search" :key="task.id">
+                    <input type="checkbox" v-model="task.completed">
+                    <span :class="{completed: task.completed}">{{task.title}}</span>
+                    <button @click="delTask(task.id)" class="delete-task">删除</button>
+                </li>
+            </ul>
+            <p v-else>暂无任务</p>
+        </div>
+        <div>
+            新任务:
+            <input type="text" v-model="newTask" placeholder="请输入新任务">
+            <button @click="addTask" class="add-task">添加任务</button>
+            <button @click="clearTaskList" class="clear-task">清空任务</button>
+        </div>
+        <p>当前任务数量:{{taskList.length}}</p>
+        <p>待完成任务数量:{{toCompleteTask}}</p>
+        <p>已完成任务数量:{{completedTask}}</p>
+    </div>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                taskList: [
+                    {
+                        id: '1',
+                        title: '吃饭',
+                        completed: false
+                    },
+                    {
+                        id: '2',
+                        title: '睡觉',
+                        completed: false
+                    },
+                    {
+                        id: '3',
+                        title: '打豆豆',
+                        completed: true
+                    }
+                ],
+                newTask: '',
+                searchText: ''
+            },
+            methods: {
+                delTask(id) {
+                    this.taskList = this.taskList.filter(task => id != task.id)
+                    this.log()
+                },
+                addTask() {
+                    if (this.newTask.trim() === '') {
+                        alert('新任务不能为空')
+                        return
+                    }
+                    this.taskList.unshift({
+                        id: Date.now(),
+                        title: this.newTask,
+                        completed: false
+                    })
+                    this.newTask = ''
+                    this.log()
+                },
+                clearTaskList() {
+                    this.taskList = []
+                    this.log()
+                },
+                log(){
+                    console.log('20240574文凯')
+                }
+            },
+            computed: {
+                completedTask() {
+                    return this.taskList.filter(task => task.completed != false).length
+                },
+                toCompleteTask() {
+                    return this.taskList.filter(task => task.completed != true).length
+                },
+                taskList4Search() {
+                    if (this.searchText.trim() === '') {
+                        return this.taskList
+                    }
+                    return this.taskList.filter(task => task.title.includes(this.searchText))
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToDoList</title>
+    <script src="vue.js"></script>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #fff9de;
+            color: #4a4a4a;
+            line-height: 1.6;
+        }
+
+        #app {
+            max-width: 600px;
+            margin: 300px auto;
+            background: #fff;
+            padding: 20px;
+            border: 5px solid #f5e653;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        h1 {
+            color: #d04e5c;
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 20px;
+        }
+
+        .tabs {
+            /* display: flex; */
+            display: inline-block;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .tab {
+            display: inline-block;
+            padding: 10px 30px;
+            cursor: pointer;
+            margin-right: 10px;
+            border-radius: 3px;
+        }
+
+        .tab.active {
+            border-bottom: 3px solid #ffe600;
+            color: rgb(0, 0, 0);
+        }
+
+        hr {
+            border: none;
+            /* 移除默认边框 */
+            height: 1px;
+            /* 设置高度 */
+            background-color: #ebee4f;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            text-align: left;
+            background: #fff2b1;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        li:hover {
+            background-color: #fff9de;
+            cursor: pointer;
+        }
+
+        .del {
+            background-color: #ffffff;
+            border: 1px solid #f5e653;
+            border-radius: 20px;
+            float: right;
+        }
+
+        .completed {
+            text-decoration: line-through;
+        }
+
+        .taskI {
+            text-align: center;
+        }
+
+        input[type="text"] {
+            text-align: center;
+            border: 1px solid #f8efc7;
+            box-shadow: 0 2px 4px #f5e653;
+            width: 60%;
+            padding: 5px;
+            border-radius: 3px;
+            margin-right: 5px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #caa500;
+            box-shadow: 0 0 3px rgba(255, 103, 0, 0.5);
+        }
+
+        select {
+            background-color: #f5e653;
+            border: 1px solid #f5e653;
+
+            padding: 5px;
+        }
+
+        .btnTask {
+            border: 1px solid #f8efc7;
+            background-color: #f5e653;
+            border-radius: 3px;
+            padding: 5px;
+            /* box-shadow: 0 2px 4px #f5e653; */
+        }
+
+        .task-count {
+            color: #757575;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <h1>ToDoList</h1>
+        <div class="taskI">
+            <input type="text" placeholder="添加新任务" v-model="newTask" @keyup.enter="addTask">
+            <select v-model="newTaskType">
+                <option v-for="tab in tabs.slice(1)" :key="tab" :value="tab">{{ tab }}</option>
+            </select>
+            <button class="btnTask" @click="addTask">添加任务</button>
+            <button class="btnTask" @click="clearAllTasks">清空任务</button><br><br>
+        </div>
+        <hr>
+        <div class="tabs">
+            <div v-for="tab in tabs" :key="tab" class="tab" :class="{ active: activeTab === tab }"
+                @click="activeTab = tab">
+                {{ tab }}
+            </div>
+        </div>
+        <ul v-if="tasks.length > 0">
+            <li v-for="(task, index) in filteredTasks" :key="index" :class="{ completed: task.completed }">
+                <input type="checkbox" v-model='task.completed' />
+                <span>
+                    {{ task.text }} ({{ task.type }})
+                </span>
+                <button @click="deleteTask(index)" class="del">删除</button>
+            </li>
+        </ul>
+
+        <div class="task-count">
+            当前任务数量：{{ TaskCount }}
+        </div>
+
+    </div>
+</body>
+
+<script>
+    const app = new Vue({
+        el: '#app',
+        data: {
+            tabs: ['全部', '娱乐', '学习', '生活', '其他'],
+            activeTab: '全部',
+            tasks: [],
+            newTask: '',
+            newTaskType: '娱乐'
+        },
+        computed: {
+            // 计数
+            TaskCount() {
+                return this.tasks.filter(task => !task.completed).length;
+            },
+            // 选项卡选中筛选
+            filteredTasks() {
+                if (this.activeTab === '全部') {
+                    return this.tasks;
+                }
+                return this.tasks.filter(task => task.type === this.activeTab);
+            }
+        },
+        methods: {
+            //添加
+            addTask() {
+                if (this.newTask.trim() !== "") {
+                    this.tasks.push({
+                        text: this.newTask,
+                        completed: false,
+                        type: this.newTaskType,
+                        timer: 0,
+                        interval: null
+                    });
+                    this.newTask = "";
+                }
+            },
+            //删除
+            deleteTask(index) {
+                clearInterval(this.tasks[index].interval);
+                this.tasks.splice(index, 1);
+            },
+            //清除
+            clearAllTasks() {
+                this.tasks.forEach(task => clearInterval(task.interval));
+                this.tasks = [];
+            },
+
+            // 选中完成状态
+            toggleTaskCompletion(index) {
+                const task = this.tasks[index];
+                task.completed = !task.completed;
+
+            }
+        }
+    });
+    console.log("中软2206-黄康妮-31号");
+
+</script>
+
+</html>
